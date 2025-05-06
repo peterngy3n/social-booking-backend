@@ -2,6 +2,12 @@ const express = require('express')
 const app = express()
 //const {io} = require('../app')
 
+//Booking
+const bookingRoute = require('./booking/booking.route')
+const recommendationRoute = require('./booking/recommendation.route')
+const invoiceRoute = require('./booking/invoice.route')
+const paymentRoute = require('./booking/payment.route')
+const roomRoute = require('./booking/room.route')
 
 //General
 
