@@ -27,6 +27,7 @@ const hashtagRoute = require('./social/hashtag.route')
 const reactRoute = require('./social/react.route')
 const reactCommentRoute = require('./social/react-comment.route')
 const commentRoute = require('./social/comment.route')
+const relationRoute = require('./social/relation.route')
 
 const router = express.Router();
 //const io = app.get('io')
@@ -50,6 +51,7 @@ router.use('/', hashtagRoute)
 router.use('/', reactRoute)
 router.use('/', commentRoute)
 router.use('/', reactCommentRoute)
+app.use('/', relationRoute)
 
 module.exports = router
 
