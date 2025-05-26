@@ -91,6 +91,18 @@ const getBookingByLocationId = async (locationId) => {
 }
 
 const createBooking = async (bookingData) => {
+    const { userId, dateBooking, checkinDate, checkoutDate, 
+        items, services, voucherId, totalPrice } = bookingData;
+
+    const booking = new BookingBuilder()
+    .setUserId(userId)    
+    .setDateBooking(dateBooking)
+    .setRooms(items, checkinDate, checkoutDate)
+    .setServices(services)
+    .setVoucherId(voucherId)
+    .setPrice(totalPrice)
+    .build()
+
     for (let item of bookingData.items) {
         const room = await Room.findById(item.roomId, 'pricePerNight');
         console.log('room: ', room);
@@ -163,6 +175,50 @@ const getBookingByBusinessId = async (businessId) => {
     });
     return bookings;
 };
+
+const calculateTotalEstimatedPrice = async (rooms, services) => {
+    //Lấy thông tin của các phòng từ database
+    let totalServicePrice = 0
+    let totalRoomPrice = 0
+    if (rooms) {
+        const roomIds = rooms.map(r => new mongoose.Types.ObjectId(r.roomId))
+        const roomData = await Room.find({ _id: { $in: roomIds } }, { _id: 1, pricePerNight: 1})
+        
+        //Đưa data vào map để tối ưu thời gian
+        const roomMap = new Map()
+        roomData.forEach(r => roomMap.set(r._id.toString(), r.pricePerNight))
+
+        //Tính tổng giá các phòng
+        
+        for (const r of rooms) {
+            const roomPrice = roomMap.get(r.roomId)
+            if(!roomPrice)
+                throw new NotFoundException('Cannot found room')
+            totalRoomPrice += roomPrice * r.quantity * r.nights
+        }
+    }
+
+    //Lấy thông tin của các dịch vụ từ database
+    if (services) {
+        const serviceIds = services.map(s => new mongoose.Types.ObjectId(s.serviceId))
+        const serviceData = await Service.find({ _id: { $in: serviceIds } }, { _id: 1, price: 1})
+        
+        //Đưa data vào map để tối ưu thời gian
+        const serviceMap = new Map()
+        serviceData.forEach(s => roomMap.set(s._id.toString(), s.price))
+
+        //Tính tổng giá các phòng
+        
+        for (const s of services) {
+            const servicePrice = serviceMap.get(r.roomId)
+            if(!servicePrice)
+                throw new NotFoundException('Cannot found service')
+            totalServicePrice += servicePrice * s.quantity
+        }
+    }
+
+    return totalRoomPrice + totalServicePrice
+}
 
 const getRevenueByMonth = async (month, year) => {
     const startDate = new Date(year, month - 1, 1); // Ngày đầu tiên của tháng
@@ -281,4 +337,5 @@ module.exports = {
     deleteBooking,
     getRevenueByMonth,
     getBookingRevenueByMonthForBusiness,
+    calculateTotalEstimatedPrice
 }

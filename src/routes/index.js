@@ -8,7 +8,7 @@ const recommendationRoute = require('./booking/recommendation.route')
 const invoiceRoute = require('./booking/invoice.route')
 const paymentRoute = require('./booking/payment.route')
 const roomRoute = require('./booking/room.route')
-
+const voucherRoute = require('./booking/voucher.route')
 //General
 
 const authRoute = require('./general/auth.route')

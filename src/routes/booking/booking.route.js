@@ -14,5 +14,6 @@ router.put('/booking/addservice/:id', bookingController.addServices)
 router.delete('/booking/delete/:id', bookingController.deleteBooking)
 router.get('/bookings/revenue', bookingController.getRevenueByMonth)
 router.get('/bookings/revenue/:businessId', bookingController.getBookingRevenue)
+router.post('/bookings/calculate', bookingController.calculateTotalEstimatedPrice)
 
 module.exports = router
