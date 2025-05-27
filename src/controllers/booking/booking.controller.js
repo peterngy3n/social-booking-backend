@@ -214,3 +214,18 @@ module.exports.getBookingRevenue = async (req, res, next) => {
         next(error);
     }
 };
+
+module.exports.calculateTotalEstimatedPrice = async (req, res, next) => {
+    console.log('CalculateTotalEstimatedPrice::', req.body);
+    const { items, services } = req.body;
+    try {
+        const result = await bookingSvc.calculateTotalEstimatedPrice(items, services);
+        res.status(200).json({
+            isSuccess: true,
+            data: result,
+            error: null,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
