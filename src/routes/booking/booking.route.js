@@ -16,4 +16,7 @@ router.get('/bookings/revenue', bookingController.getRevenueByMonth)
 router.get('/bookings/revenue/:businessId', bookingController.getBookingRevenue)
 router.post('/bookings/calculate', bookingController.calculateTotalEstimatedPrice)
 
+router.post('/booking/preview', checkUser, bookingController.createPreviewBooking)
+router.get('/booking/preview/:previewId', checkUser, bookingController.getPreviewBooking)
+
 module.exports = router

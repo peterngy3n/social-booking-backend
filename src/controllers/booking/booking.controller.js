@@ -229,3 +229,32 @@ module.exports.calculateTotalEstimatedPrice = async (req, res, next) => {
         next(error);
     }
 }
+
+module.exports.createPreviewBooking = async (req, res, ) => {
+    console.log('Create preview booking::', req.body);
+    const { rooms, services } = req.body;
+    const userId = res.locals.user._id; // Lấy userId từ token đã xác thực
+
+    const result = await previewBookingService.createBookingPreview(userId, {rooms, services});
+
+    res.status(200).json({
+        isSuccess: true,
+        data: result,
+        error: null,
+    });
+}
+
+module.exports.getPreviewBooking = async (req, res, ) => {
+    console.log('Get preview booking::', req.params);
+
+    const previewId = req.params.previewId
+    const userId = res.locals.user._id; // Lấy userId từ token đã xác thực
+
+    const result = await previewBookingService.getBookingPreview(userId, previewId);
+    
+    res.status(200).json({
+        isSuccess: true,
+        data: result,
+        error: null,
+    });
+}
