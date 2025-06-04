@@ -9,6 +9,9 @@ const invoiceRoute = require('./booking/invoice.route')
 const paymentRoute = require('./booking/payment.route')
 const roomRoute = require('./booking/room.route')
 const voucherRoute = require('./booking/voucher.route')
+const reviewRoute = require('./booking/review.route')
+const serviceRoute = require('./booking/service.route')
+
 //General
 
 const authRoute = require('./general/auth.route')
@@ -51,7 +54,11 @@ router.use('/', hashtagRoute)
 router.use('/', reactRoute)
 router.use('/', commentRoute)
 router.use('/', reactCommentRoute)
-app.use('/', relationRoute)
+router.use('/', relationRoute)
+router.use('/', voucherRoute)
+router.use('/', reviewRoute)
+router.use('/', serviceRoute)
+
 
 module.exports = router
 
