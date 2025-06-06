@@ -2,9 +2,14 @@ const Booking = require('../../models/booking/booking.model').Booking
 const ServiceBooked = require('../../models/booking/booking.model').ServiceBooked
 const Location = require('../../models/general/location.model')
 const Service = require('../../models/booking/service.model')
+const roomService = require('../../services/booking/room.service')
+const voucherService = require('../../services/booking/voucher.service')
+const previewBookingService = require('../../services/booking/preview-booking.service')
+const voucherUserService = require('../../services/booking/voucher-user.service')
 const Room = require('../../models/booking/room.model')
 const {NotFoundException, ForbiddenError} = require('../../errors/exception')
 const { default: mongoose } = require('mongoose')
+const BookingBuilder = require('../../components/builder/booking.builder')
 
 const updateStatusBooking = async (bookingId, amountPayed) => {
     const booking = await Booking.findById(bookingId);
@@ -91,35 +96,62 @@ const getBookingByLocationId = async (locationId) => {
 }
 
 const createBooking = async (bookingData) => {
-    const { userId, dateBooking, checkinDate, checkoutDate, 
-        items, services, voucherId, totalPrice } = bookingData;
+    const { userId, dateBooking, checkinDate, checkoutDate, voucherId } = bookingData;
+    const previewBooking = await previewBookingService.getBookingPreview(userId, preview_bookingId)
+    const voucher = await voucherService.getVoucherById(voucherId)
 
     const booking = new BookingBuilder()
     .setUserId(userId)    
     .setDateBooking(dateBooking)
-    .setRooms(items, checkinDate, checkoutDate)
-    .setServices(services)
+    .setRooms(previewBooking.items, checkinDate, checkoutDate)
+    .setServices(previewBooking.services)
     .setVoucherId(voucherId)
-    .setPrice(totalPrice)
-    .build()
+    .setPrice(previewBooking.totalPrice)
 
-    for (let item of bookingData.items) {
-        const room = await Room.findById(item.roomId, 'pricePerNight');
-        console.log('room: ', room);
-        item.price = room.pricePerNight;
-    }
+    const session = await mongoose.startSession();
     
-    for (let service of bookingData.services) {
-        const service = await Service.findById(service.serviceId);
-        service.price = service.price;
+    try {
+        session.startTransaction();
+        // 1. Kiểm tra & trừ số lượng phòng
+        if(await roomService.getRoomAvailable(previewBooking.items, checkinDate, checkoutDate, session) === false) {
+            throw new Error('Phòng đã được đặt')
+        }
+        // 2. Validate lại voucher
+        if(voucherId) {
+            const {totalPrice, discountAmount, totalPriceAfterDiscount} 
+            = await voucherService.verifyVoucher(voucher.code, preview_bookingId, userId, session)
+            booking.setVoucherId(new mongoose.Types.ObjectId(voucherId))
+            booking.setDiscount(discountAmount)
+        }
+        console.log('Here: ')
+        
+        booking.setTax(0.08)
+
+        // 3. Tạo booking
+
+        booking.build()
+        
+        const bookingData = new Booking(booking.booking)
+        const savedBooking = await bookingData.save({ session });
+
+        
+
+        // 4. Update các bên liên quan
+        await voucherService.updateVoucher(
+            voucherId,
+            { $inc: { usesCount: 1 } }, // tăng 1 lượt dùng
+            session);
+        await voucherUserService.addVoucherUsage(userId, voucher.code, session);
+
+        await session.commitTransaction();
+        return savedBooking;
+    } catch (err) {
+        await session.abortTransaction();
+        throw err;
+    } finally {
+        session.endSession();
     }
-    console.log('before: ', bookingData);
-    const result = await bookingData.save();
-    console.log('after: ',result);
-    if(result)
-        return result
-    else
-        throw new ForbiddenError('Not allow to create')
+
 }
 
 const updateBooking = async (bookingId, bookingData) => {

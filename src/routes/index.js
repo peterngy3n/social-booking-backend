@@ -23,6 +23,7 @@ const conversationRoute = require('./general/conversation.route')
 const messageRoute = require('./general//message.route')
 const executeCronJobRoute = require('./general/execute-cronjob.route')
 const socketRoute = require('./general/socket.route')
+const emailRoute = require('./general/email.route')
 
 //Social 
 const postRoute = require('./social/post.route')
@@ -58,6 +59,7 @@ router.use('/', relationRoute)
 router.use('/', voucherRoute)
 router.use('/', reviewRoute)
 router.use('/', serviceRoute)
+router.use('/', emailRoute)
 
 
 module.exports = router

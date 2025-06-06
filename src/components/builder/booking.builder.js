@@ -11,6 +11,8 @@ class BookingBuilder {
             items: [],
             services: [],
             totalPrice: 0,
+            discount: 0,
+            totalAfterDiscount: 0,
             tax: 0,
             voucherId: null,
             totalPriceAfterTax: 0,
@@ -76,8 +78,18 @@ class BookingBuilder {
 
     setPrice(totalPrice) {
         this.booking.totalPrice = totalPrice
-        this.booking.tax = totalPrice * 0.08
-        this.booking.totalPriceAfterTax = totalPrice + this.booking.tax
+        return this
+    }
+
+    setDiscount(discountAmount) {
+        this.booking.discount = discountAmount | 0
+        this.booking.totalAfterDiscount = this.booking.totalPrice - discountAmount
+        return this
+    }
+    
+    setTax(taxPercent) {
+        this.booking.tax = this.booking.totalAfterDiscount * taxPercent / 100
+        this.booking.totalPriceAfterTax = this.booking.totalAfterDiscount + this.booking.tax
         return this
     }
 

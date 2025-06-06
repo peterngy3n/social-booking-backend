@@ -76,27 +76,26 @@ module.exports.getBookingByBusinessId = async (req, res, next) => {
 
 module.exports.createBooking = async (req, res, next) => {
     const {
-        userId,
-        dateBooking,
         checkinDate,
         checkoutDate,
-        items, //Item nhap data gom: id phong, so luong (default: 1), so dem
-        services, //Service nhap data gom: id phong, so luong (default: 1), so dem
-        amountPaid,
+        voucherId, 
+        preview_bookingId,
     } = req.body
     
+    const userId = res.locals.user._id;
+
     try {
         const bookingData = new Booking({
             userId,
-            dateBooking,
+            dateBooking: new Date(),
             checkinDate,
             checkoutDate,
-            items,
-            services,      
-            amountPaid,       
+            voucherId,    
         })
+
         console.log(bookingData)    
-        const result = await bookingSvc.createBooking(bookingData)
+
+        const result = await bookingSvc.createBooking(bookingData, preview_bookingId)
         res.status(201).json({
             isSuccess: true,
             data: result,
